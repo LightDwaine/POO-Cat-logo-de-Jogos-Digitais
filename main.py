@@ -103,7 +103,23 @@ class Jogo(ABC):
         self.__anoLancamento = novoAno
 
 
-class JogoPc(Jogo):
+class MixinExportacao:
+    # Cria um dicionário base com os dados comuns a todos os jogos
+    def exportar_dados(self):
+        dados = {
+            "titulo": self.titulo,
+            "nota": self.nota,
+            "horasJogadas": self.horasJogadas,
+            "status": self.status,
+            "genero": self.genero,
+            "dataInicio": self.dataInicio,
+            "dataTermino": self.dataTermino,
+            "anoLancamento": self.anoLancamento,
+            "tipo_classe": self.__class__.__name__ # Imperativo para sabermos qual classe recriar ao carregar o JSON
+        }
+        return dados
+
+class JogoPc(Jogo, MixinExportacao):
     def __init__(self, titulo: str, nota: float, horasJogadas: int, genero: str, dataInicio: str, dataTermino: str, anoLancamento: int):
         super().__init__(titulo, nota, horasJogadas, genero, dataInicio, dataTermino, anoLancamento)
         self.__plataforma = "Computador"
@@ -117,8 +133,13 @@ class JogoPc(Jogo):
     @property
     def plataforma(self):
         return self.__plataforma
+    
+    def exportar_dados(self):
+        dados = super().exportar_dados()
+        dados["plataforma"] = self.plataforma
+        return dados
 
-class JogoMobile(Jogo):
+class JogoMobile(Jogo, MixinExportacao):
     def __init__(self, titulo: str, nota: float, horasJogadas: int, genero: str, dataInicio: str, dataTermino: str, anoLancamento: int):
         super().__init__(titulo, nota, horasJogadas, genero, dataInicio, dataTermino, anoLancamento)
         self.__plataforma = "Mobile"
@@ -132,3 +153,8 @@ class JogoMobile(Jogo):
     @property
     def plataforma(self):
         return self.__plataforma
+    
+    def exportar_dados(self):
+        dados = super().exportar_dados()
+        dados["plataforma"] = self.plataforma
+        return dados
