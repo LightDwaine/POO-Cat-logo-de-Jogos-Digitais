@@ -1,0 +1,26 @@
+[
+    {
+        "titulo": "Cyberpunk 2077",
+        "nota": 9,
+        "horasJogadas": 50,
+        "status": "finalizado",
+        "genero": "RPG",
+        "dataInicio": "2024-01-01",
+        "dataTermino": "2024-02-01",
+        "anoLancamento": 2020,
+        "tipo_classe": "JogoPc",
+        "plataforma": "Computador"
+    },
+    {
+        "titulo": "Candy Crush",
+        "nota": 5,
+        "horasJogadas": 2,
+        "status": "jogando",
+        "genero": "Puzzle",
+        "dataInicio": "2024-03-01",
+        "dataTermino": "",
+        "anoLancamento": 2012,
+        "tipo_classe": "JogoMobile",
+        "plataforma": "Mobile"
+    }
+]
