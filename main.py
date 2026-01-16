@@ -158,3 +158,23 @@ class JogoMobile(Jogo, MixinExportacao):
         dados = super().exportar_dados()
         dados["plataforma"] = self.plataforma
         return dados
+
+class JogoConsole(Jogo, MixinExportacao):
+    def __init__(self, titulo: str, nota: float, horasJogadas: int, genero: str, dataInicio: str, dataTermino: str, anoLancamento: int):
+        super().__init__(titulo, nota, horasJogadas, genero, dataInicio, dataTermino, anoLancamento)
+        self.__plataforma = "Console"
+
+    def __repr__(self):
+        return f"Título: {self.titulo} Nota: {self.nota} Horas Jogadas: {self.horasJogadas} Status: {self.status} Gênero: {self.genero} Data Início: {self.dataInicio} Data Término: {self.dataTermino} Ano Lançamento: {self.anoLancamento}"
+
+    def __str__(self):
+        return super().__str__() + f" | Plataforma: {self.__plataforma}"
+
+    @property
+    def plataforma(self):
+        return self.__plataforma
+    
+    def exportar_dados(self):
+        dados = super().exportar_dados()
+        dados["plataforma"] = self.plataforma
+        return dados
