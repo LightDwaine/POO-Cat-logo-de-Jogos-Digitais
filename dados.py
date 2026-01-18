@@ -1,6 +1,6 @@
 import json
 import os
-from main import JogoPc, JogoMobile 
+from jogo import JogoPc, JogoMobile 
 
 # Nomes dos arquivos
 ARQUIVO_JOGOS = 'jogos.json'
