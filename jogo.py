@@ -1,7 +1,88 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
+import json
+import os
+
+# Classe gerenciadora de coleção de jogos
+class GerenciadorJogos:
+    _instancia = None
+    _limite_jogos_simultaneos = 3
+    
+    def __new__(cls):
+        if cls._instancia is None:
+            cls._instancia = super(GerenciadorJogos, cls).__new__(cls)
+            cls._instancia._carregar_configuracoes()
+        return cls._instancia
+    
+    def _carregar_configuracoes(self):
+        """Carrega as configurações do arquivo settings.json"""
+        try:
+            if os.path.exists('settings.json'):
+                with open('settings.json', 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    self._limite_jogos_simultaneos = config.get('limite_jogos_simultaneos', 3)
+        except Exception as e:
+            print(f"Aviso ao carregar configurações: {e}")
+            self._limite_jogos_simultaneos = 3
+    
+    def atualizar_limite(self, novo_limite: int):
+        """Atualiza o limite de jogos simultâneos"""
+        if novo_limite <= 0:
+            raise ValueError("O limite deve ser maior que 0")
+        self._limite_jogos_simultaneos = novo_limite
+        self._salvar_configuracoes()
+    
+    def obter_limite(self):
+        """Retorna o limite configurado"""
+        return self._limite_jogos_simultaneos
+    
+    def _salvar_configuracoes(self):
+        """Salva as configurações no arquivo settings.json"""
+        try:
+            config = {}
+            if os.path.exists('settings.json'):
+                with open('settings.json', 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            
+            config['limite_jogos_simultaneos'] = self._limite_jogos_simultaneos
+            
+            with open('settings.json', 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            print(f"Aviso ao salvar configurações: {e}")
+    
+    @staticmethod
+    def validar_limite(lista_jogos, novo_status: str, jogo_atual=None):
+        """
+        Valida se é possível alterar um jogo para o status "jogando".
+        
+        Args:
+            lista_jogos: Lista de todos os jogos
+            novo_status: O novo status que se quer atribuir
+            jogo_atual: O jogo que está sendo modificado (para não contar ele mesmo)
+        
+        Returns:
+            bool: True se é permitido, False caso contrário
+            
+        Raises:
+            Exception: Se o limite for excedido
+        """
+        if novo_status.lower() == "jogando":
+            jogos_jogando = 0
+            for jogo in lista_jogos:
+                if jogo is not jogo_atual and jogo.status.lower() == "jogando":
+                    jogos_jogando += 1
+            
+            if jogos_jogando >= GerenciadorJogos().obter_limite():
+                limite = GerenciadorJogos().obter_limite()
+                raise Exception(f"Limite de {limite} jogos simultâneos atingido. Finalize um jogo antes de iniciar outro.")
+        
+        return True
 
 class Jogo(ABC):
+    # Atributo de classe para rastrear a lista de jogos (será definido por setjogos_lista)
+    _lista_jogos_global = None
+    
     def __init__(self, titulo: str, nota: int, horasJogadas: int, genero: str, dataInicio: str, dataTermino: str, anoLancamento: int):
         self.__titulo = titulo
         self.__nota = nota
@@ -14,6 +95,11 @@ class Jogo(ABC):
             self.__status = "jogando"
         else:
             self.__status = "não iniciado"
+    
+    @classmethod
+    def definir_lista_jogos(cls, lista_jogos):
+        """Define a lista global de jogos para validação de limite"""
+        cls._lista_jogos_global = lista_jogos
 
     def __str__(self):
         return f"Jogo: {self.__titulo} | Nota: {self.__nota} | {self.__status}"
@@ -77,6 +163,9 @@ class Jogo(ABC):
         else:
           raise Exception("Horas jogadas insuficientes")
       elif novoStatus == "jogando":
+        # Valida o limite de jogos simultâneos
+        if Jogo._lista_jogos_global is not None:
+          GerenciadorJogos.validar_limite(Jogo._lista_jogos_global, novoStatus, self)
         self.__status = novoStatus
       elif novoStatus == "não iniciado":
         if self.__horasJogadas == 0:
