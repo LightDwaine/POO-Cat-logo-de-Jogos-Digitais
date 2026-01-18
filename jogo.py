@@ -70,7 +70,7 @@ class Jogo(ABC):
         self.__horasJogadas = novaHora
 
     @status.setter
-    def status (self, novoStatus): # Renamed setStatus to status
+    def status (self, novoStatus):
       if novoStatus == "finalizado":
         if self.__horasJogadas >= 1:
           self.__status = novoStatus
