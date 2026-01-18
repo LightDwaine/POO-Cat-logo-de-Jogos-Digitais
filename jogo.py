@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from abc import ABC, abstractmethod
-import json
-import os
+from config import obter_limite_jogos_simultaneos, atualizar_configuracao
 
 # Classe gerenciadora de coleção de jogos
 class GerenciadorJogos:
@@ -16,14 +15,7 @@ class GerenciadorJogos:
     
     def _carregar_configuracoes(self):
         """Carrega as configurações do arquivo settings.json"""
-        try:
-            if os.path.exists('settings.json'):
-                with open('settings.json', 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-                    self._limite_jogos_simultaneos = config.get('limite_jogos_simultaneos', 3)
-        except Exception as e:
-            print(f"Aviso ao carregar configurações: {e}")
-            self._limite_jogos_simultaneos = 3
+        self._limite_jogos_simultaneos = obter_limite_jogos_simultaneos()
     
     def atualizar_limite(self, novo_limite: int):
         """Atualiza o limite de jogos simultâneos"""
@@ -38,18 +30,7 @@ class GerenciadorJogos:
     
     def _salvar_configuracoes(self):
         """Salva as configurações no arquivo settings.json"""
-        try:
-            config = {}
-            if os.path.exists('settings.json'):
-                with open('settings.json', 'r', encoding='utf-8') as f:
-                    config = json.load(f)
-            
-            config['limite_jogos_simultaneos'] = self._limite_jogos_simultaneos
-            
-            with open('settings.json', 'w', encoding='utf-8') as f:
-                json.dump(config, f, indent=4, ensure_ascii=False)
-        except Exception as e:
-            print(f"Aviso ao salvar configurações: {e}")
+        atualizar_configuracao('limite_jogos_simultaneos', self._limite_jogos_simultaneos)
     
     @staticmethod
     def validar_limite(lista_jogos, novo_status: str, jogo_atual=None):
@@ -100,6 +81,19 @@ class Jogo(ABC):
     def definir_lista_jogos(cls, lista_jogos):
         """Define a lista global de jogos para validação de limite"""
         cls._lista_jogos_global = lista_jogos
+    
+    @classmethod
+    def validar_duplicata(cls, titulo: str, plataforma: str, lista_jogos=None):
+        """Verifica se já existe um jogo com mesmo título e plataforma. Retorna True se é único."""
+        lista = lista_jogos if lista_jogos is not None else cls._lista_jogos_global
+        
+        if lista is None:
+            return True
+        
+        for jogo in lista:
+            if jogo.titulo.lower() == titulo.lower() and hasattr(jogo, 'plataforma') and jogo.plataforma.lower() == plataforma.lower():
+                return False
+        return True
 
     def __str__(self):
         return f"Jogo: {self.__titulo} | Nota: {self.__nota} | {self.__status}"
@@ -148,11 +142,16 @@ class Jogo(ABC):
     def nota (self, novaNota):
         if novaNota < 0 or novaNota > 10:
           raise Exception("Nota inválida")
-        else:
-          self.__nota = novaNota
+        if self.__status != "finalizado":
+          raise Exception("Jogo deve estar FINALIZADO para receber avaliação")
+        self.__nota = novaNota
 
     @horasJogadas.setter
     def horasJogadas (self, novaHora):
+        if novaHora < 0:
+          raise Exception("Horas jogadas não pode ser negativo")
+        if novaHora < self.__horasJogadas:
+          raise Exception("Horas jogadas só podem ser atualizadas progressivamente (não pode diminuir)")
         self.__horasJogadas = novaHora
 
     @status.setter

@@ -1,25 +1,30 @@
 import json
 import os
-from jogo import JogoPc, JogoMobile 
+from jogo import JogoPc, JogoMobile
+from config import carregar_configuracoes
 
 # Nomes dos arquivos
 ARQUIVO_JOGOS = 'jogos.json'
 ARQUIVO_SETTINGS = 'settings.json'
 
-def carregar_configuracoes():
-    try:
-        # Carrega as configurações do arquivo settings.json
-        with open(ARQUIVO_SETTINGS, 'r', encoding='utf-8') as f:
-            return json.load(f)
+def adicionar_jogo(lista_jogos, novo_jogo):
+    """
+    Adiciona um jogo à lista, validando se não é duplicado.
+    
+    Args:
+        lista_jogos: Lista de jogos existentes
+        novo_jogo: Jogo a ser adicionado
         
-    except FileNotFoundError:
-        # Configuração padrão caso o arquivo não exista
-        return {
-            "generos_favoritos": [],
-            "meta_anual_finalizados": 12,
-            "plataforma_principal": "PC",
-            "limite_jogos_simultaneos": 3
-        }
+    Raises:
+        Exception: Se um jogo com mesmo título e plataforma já existe
+    """
+    from jogo import Jogo
+    
+    if not Jogo.validar_duplicata(novo_jogo.titulo, novo_jogo.plataforma, lista_jogos):
+        raise Exception(f"Jogo duplicado: '{novo_jogo.titulo}' ({novo_jogo.plataforma}) já existe na lista")
+    
+    lista_jogos.append(novo_jogo)
+    return True
 
 def salvar_jogos(lista_jogos):
     lista_para_json = []

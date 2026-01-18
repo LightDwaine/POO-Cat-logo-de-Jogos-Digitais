@@ -1,5 +1,8 @@
 from typing import List, Dict
 from jogo import Jogo
+from config import obter_meta_anual
+import json
+import os
 
 def calcular_total_horas(lista_jogos: List['Jogo']) -> float:
     # Calcula o total de horas jogadas somando as horas de cada jogo na lista
@@ -45,6 +48,23 @@ def listar_top_jogos(lista_jogos: List['Jogo'], top_n=5) -> List['Jogo']:
     # Retorna apenas os primeiros 5 jogos (top_n = 5)
     return lista_ordenada[:top_n]
 
+def verificar_meta_anual(lista_jogos: List['Jogo']):
+    """Verifica se a meta anual de jogos finalizados foi atingida e emite aviso se não"""
+    meta = obter_meta_anual()
+    finalizados = [j for j in lista_jogos if j.status.lower() == "finalizado"]
+    qtd_finalizados = len(finalizados)
+    
+    print("\n📅 META ANUAL:")
+    print(f"   Meta: {meta} jogos | Finalizados: {qtd_finalizados}")
+    
+    if qtd_finalizados < meta:
+        faltam = meta - qtd_finalizados
+        print(f"   ⚠️  AVISO: Faltam {faltam} jogo(s) para atingir a meta anual!")
+    else:
+        print(f"   ✅ Meta atingida! ({qtd_finalizados}/{meta})")
+    
+    print("="*40)
+
 def exibir_relatorio_geral(lista_jogos: List['Jogo']):
     print("="*40)
     print("       RELATÓRIO DO CATÁLOGO DE JOGOS       ")
@@ -76,5 +96,8 @@ def exibir_relatorio_geral(lista_jogos: List['Jogo']):
     else:
         for i, jogo in enumerate(top5, 1):
             print(f"   {i}. {jogo.titulo} - {jogo.horasJogadas}h")
-            
-    print("="*40)
+    
+    print("-" * 40)
+    
+    # Aviso de Meta Anual
+    verificar_meta_anual(lista_jogos)
